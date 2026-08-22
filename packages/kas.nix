@@ -7,7 +7,7 @@
 { pkgs, ... }:
 
 let
-  version = "5.4";
+  version = "5.5";
 in
 pkgs.kas.overrideAttrs (old: {
   inherit version;
@@ -15,8 +15,11 @@ pkgs.kas.overrideAttrs (old: {
     owner = "siemens";
     repo = "kas";
     tag = version;
-    hash = "sha256-wETe3VgG5ZEQjWXgcC/u42ZzzPIMqrBEcZmaDcK5yRY=";
+    hash = "sha256-4yaOCu42pDoqAnx1TSAMPf5c/zaHTHuul2GMcC+WvVY=";
   };
+  # 5.5 makes colorlog mandatory. nixpkgs still packages 5.3, so the dependency
+  # list we inherit lacks it and pythonRuntimeDepsCheckHook rejects the wheel.
+  propagatedBuildInputs = old.propagatedBuildInputs ++ [ pkgs.python3Packages.colorlog ];
   patches = (old.patches or [ ]) ++ [
     ./kas-patches/0001-inject-nixvars-config.patch
     ./kas-patches/0002-exempt-injected-configs.patch
