@@ -166,6 +166,20 @@
           export LESSOPEN="|${pkgs.lesspipe}/bin/lesspipe.sh %s"
           source ${pkgs.fzf}/share/fzf/completion.zsh
           source ${pkgs.fzf}/share/fzf/key-bindings.zsh
+
+          # Fish-like behavior: history-driven autosuggestions, syntax
+          # highlighting, and prefix history search on the arrow keys.
+          # syntax-highlighting must be sourced last.
+          source ${pkgs.zsh-autosuggestions}/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+          source ${pkgs.zsh-history-substring-search}/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+          bindkey '^[[A' history-substring-search-up
+          bindkey '^[[B' history-substring-search-down
+          source ${pkgs.zsh-syntax-highlighting}/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+          # Replace the grml prompt with starship. `prompt off` clears
+          # grml's left and right prompts so the two do not stack.
+          prompt off
+          eval "$(${pkgs.starship}/bin/starship init zsh)"
         '';
         destination = "/.zshrc";
       };
@@ -179,49 +193,51 @@
         '';
       };
 
+      # Base host toolchain for bitbake, as a plain list so the
+      # targetPkgs assignment stays a simple concatenation.
+      hostTools = with pkgs; [
+        acl
+        attr
+        bc
+        binutils
+        chrpath
+        cpio
+        diffstat
+        expect
+        file
+        gcc
+        gdb
+        git
+        git-lfs
+        gnumake
+        gnupg
+        hostname
+        iputils
+        kconfig-frontends
+        libxcrypt
+        lz4
+        ncurses
+        netcat-gnu
+        openssh
+        patch
+        perl
+        pigz
+        pythonEnv
+        rpcsvc-proto
+        socat
+        texinfo
+        unzip
+        util-linux
+        wget
+        which
+        zlib
+        zstd
+        starship
+      ];
+
       fhs = pkgs.buildFHSEnvBubblewrap {
         name = "yocto-env";
-        targetPkgs =
-          _:
-          extraTools
-          ++ (with pkgs; [
-            acl
-            attr
-            bc
-            binutils
-            chrpath
-            cpio
-            diffstat
-            expect
-            file
-            gcc
-            gdb
-            git
-            git-lfs
-            gnumake
-            gnupg
-            hostname
-            iputils
-            kconfig-frontends
-            libxcrypt
-            lz4
-            ncurses
-            netcat-gnu
-            openssh
-            patch
-            perl
-            pigz
-            pythonEnv
-            rpcsvc-proto
-            socat
-            texinfo
-            unzip
-            util-linux
-            wget
-            which
-            zlib
-            zstd
-          ]);
+        targetPkgs = _: extraTools ++ hostTools;
         multiPkgs = null;
         extraOutputsToInstall = [ "dev" ];
 
